@@ -1,0 +1,101 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: lambda-cloudability-configuration
+# app and org for use with dashboard.serverless.com
+#app: your-app-name
+#org: your-org-name
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+provider:
+  name: aws
+  runtime: python3.8
+  timeout: 300
+  memorySize: 256
+
+  # you can overwrite defaults here
+  # stage: dev
+  region: eu-west-1
+
+  # you can add statements to the Lambda function's IAM Role here
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action: "secretsmanager:GetSecretValue"
+      Resource: "arn:aws:secretsmanager:#{AWS::Region}:#{AWS::AccountId}:secret:${self:custom.smSecretFull}"
+    - Effect: "Allow"
+      Action: "organizations:ListAccounts"
+      Resource: "*"
+    - Effect: "Allow"
+      Action: "sts:AssumeRole"
+      Resource: "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole"
+  iamManagedPolicies:
+    - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+
+  # you can define service wide environment variables here
+  environment:
+    smSecret: ${self:custom.smSecret}
+    roleName: CloudabilityRole
+
+  # you can add packaging information here
+  #package:
+  #  include:
+  #    - include-me.py
+  #    - include-me-dir/**
+  exclude:
+    - requirements.txt
+#    - exclude-me-dir/**
+
+functions:
+  cloudability:
+    handler: handler.cloudability
+    vpc:
+    securityGroupIds:
+      - sg-00d7001967c38289a
+    subnetIds:
+      - subnet-071377b062c2c1bdb
+      - subnet-05d3905b57d88ee93
+      - subnet-0b8d4ca92aa7600db
+    #    The following are a few example events you can configure
+    #    NOTE: Please make sure to change your handler code to work with those events
+    #    Check the event documentation for details
+    #events:
+    #  - schedule: rate(1 day)
+
+#    Define function environment variables here
+#    environment:
+#      variable2: value2
+
+# you can add CloudFormation resource templates here
+#resources:
+#  Resources:
+#    NewResource:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: my-new-bucket
+#  Outputs:
+#     NewOutput:
+#       Description: "Description for the output"
+#       Value: "Some output value"
+
+plugins:
+  - serverless-pseudo-parameters
+  - serverless-python-requirements
+
+custom:
+  smSecret: Cloudability
+  smSecretFull: ${self:custom.smSecret}-s0QxT5
+  pythonRequirements:
+    dockerizePip: non-linux
